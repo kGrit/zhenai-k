@@ -44,7 +44,7 @@
     <div class="copyright">
       <p>版权所有：同方全球人寿保险有限公司</p>
     </div>
-    <div class="premium-wrapper">
+    <!-- <div class="premium-wrapper">
       <div class="premium-left">
         <a class="service" href="https://www.sobot.com/chat/h5/index.html?sysNum=815ca630783c4c60bce5c374ad868ced&customerFields={'customField1':'臻爱优选定寿'}">
           <i class="iconfont icon-kefu"></i>
@@ -61,17 +61,21 @@
         <div class="premium-right">
           立即测算
         </div>
-
-    </div>
+    </div> -->
+    <popup></popup>
   </div>
 </template>
 
 <script>
+import popup from 'components/popup/popup.vue'
 export default {
   data () {
     return {
 
     }
+  },
+  components: {
+    popup
   }
 
 }
@@ -161,62 +165,62 @@ export default {
     color: #b1b1b1;
     padding-bottom: 50px;
   }
-  .premium-wrapper {
-    position:fixed;
-    bottom: 0;
-    display: flex;
-    width: 100%;
-    background-color: #fff;
-    .premium-left {
-      flex: 1;
-      // padding-left: 8px;
-      height: 45px;
-      .service {
-        display: inline-block;
-        width: 40px;
-        height: 45px;
-        padding: 4px 8px 0px 8px;
-        text-align: center;
-        .icon-kefu {
-          font-size: 16px;
-        }
-        span {
-          font-size: 12px;
-          color: #3F6DB3;
-        }
-      }
-      .pay {
-        // width: 50%;
-        display: inline-block;
-        vertical-align: top;
-        .year {
-          display: inline-block;
-          height: 45px;
-          line-height: 45px;
-          font-size: 16px;
-          padding-right: 10px;
-        }
-        .price {
-           display: inline-block;
-          color:#3F6DB3;
-          font-size: 18px;
-          span:first-child{
-            font-family: 'DIN-Medium',"PingFangSC-Medium", "Source Han Sans", '黑体';
-          }
+  // .premium-wrapper {
+  //   position:fixed;
+  //   bottom: 0;
+  //   display: flex;
+  //   width: 100%;
+  //   background-color: #fff;
+  //   .premium-left {
+  //     flex: 1;
+  //     // padding-left: 8px;
+  //     height: 45px;
+  //     .service {
+  //       display: inline-block;
+  //       width: 40px;
+  //       height: 45px;
+  //       padding: 4px 8px 0px 8px;
+  //       text-align: center;
+  //       .icon-kefu {
+  //         font-size: 16px;
+  //       }
+  //       span {
+  //         font-size: 12px;
+  //         color: #3F6DB3;
+  //       }
+  //     }
+  //     .pay {
+  //       // width: 50%;
+  //       display: inline-block;
+  //       vertical-align: top;
+  //       .year {
+  //         display: inline-block;
+  //         height: 45px;
+  //         line-height: 45px;
+  //         font-size: 16px;
+  //         padding-right: 10px;
+  //       }
+  //       .price {
+  //          display: inline-block;
+  //         color:#3F6DB3;
+  //         font-size: 18px;
+  //         span:first-child{
+  //           font-family: 'DIN-Medium',"PingFangSC-Medium", "Source Han Sans", '黑体';
+  //         }
 
-        }
-      }
-    }
-    .premium-right {
-      height: 45px;
-      line-height: 45px;
-      width: 170px;
-      text-align: center;
-      background-color: #3F6DB3;
-      color: #fff;
-    }
+  //       }
+  //     }
+  //   }
+  //   .premium-right {
+  //     height: 45px;
+  //     line-height: 45px;
+  //     width: 170px;
+  //     text-align: center;
+  //     background-color: #3F6DB3;
+  //     color: #fff;
+  //   }
 
-  }
+  // }
 }
 
 </style>
