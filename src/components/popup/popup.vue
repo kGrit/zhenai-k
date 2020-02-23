@@ -20,11 +20,11 @@
         </div>
       </div>
         <!-- <van-cell is-link @click="showPopup">展示弹出层</van-cell> -->
-     <van-popup v-model="totalshow"  position="bottom" closeable :style="{ height: '60%' }"  close-icon="close" class="popup-total" >
+     <van-popup v-model="totalshow"  position="bottom" closeable   close-icon="close" class="popup-total" >
       <div class="back">
         <span>保费测算:</span>
       </div>
-      <div class="total">
+      <div class="total" ref="total">
           <van-cell-group>
             <van-cell title="投保地区" @click="showArea" ref="area" :class="{'check': cityValue!=='请选择'}">
               <span>{{cityValue}}</span>
@@ -33,7 +33,7 @@
             <van-popup v-model="areaShow" position="bottom">
               <van-area :area-list="areaList" @cancel="cancelArea" @confirm="confirmArea"/>
             </van-popup>
-            <p class="noSelect" v-show="noSelect">请选择投保地区</p>
+            <p class="noSelect" v-show="noCity">请选择投保地区</p>
 
             <van-cell title="被保险人生日" value="请选择" @click="showTime" :class="{'check': timeValue!=='请选择'}">
               <span>{{timeValue}}</span>
@@ -42,6 +42,7 @@
             <van-popup v-model="timeShow" position="bottom">
               <van-datetime-picker type="date" :min-date="minDate" :max-date="maxDate" @confirm="confirmDate"/>
             </van-popup>
+            <p class="noSelect" v-show="noTime">请选择被保险人生日</p>
             <van-cell title="被保险人性别" class="sex">
               <transition name="switch">
                <span class="switch" :class="{'active':rel==='1'}"></span>
@@ -55,15 +56,16 @@
             </van-cell>
               <van-popup v-model="amountShow" position="bottom">
                   <ul class="am-content">
-                    <li @click="amountPick(50)">50万</li>
-                    <li @click="amountPick(100)">100万</li>
+                    <li  v-for="(item,index) in amountVal" :key="index" @click="amountPick(item)">{{item}}万</li>
+                    <!-- <li @click="amountPick(100)">100万</li>
                     <li @click="amountPick(150)">150万</li>
                     <li @click="amountPick(200)">200万</li>
                     <li @click="amountPick(250)">250万</li>
-                    <li @click="amountPick(300)">300万</li>
+                    <li @click="amountPick(300)">300万</li> -->
                     <li @click="cancleAmount()">取消</li>
                   </ul>
               </van-popup>
+            <p class="noSelect" v-show="noAmount">请选择基本保额</p>
             <van-cell title="保险期间" value="内容" @click="showPeriod()" :class="{'check': period!=='请选择'}">
               <span v-show="period !=='请选择'">{{periodBefore}}</span>
               <span>{{period}}</span>
@@ -72,15 +74,15 @@
             </van-cell>
              <van-popup v-model="periodShow" position="bottom">
                   <ul class="am-content">
-                    <li @click="periodPick(20)">20年</li>
-                    <li @click="periodPick(30)">30年</li>
-                    <li @click="periodPick(60)">至60周岁</li>
-                    <li @click="periodPick(65)">至65周岁</li>
-                    <li @click="periodPick(70)">至70周岁</li>
-                    <li @click="periodPick(80)">至80周岁</li>
+                    <li v-for="(item,index) in periodVal" :key="index" @click="periodPick(item)">
+                       <span>{{item ==20||item ==30? '':'至'}}</span>
+                       {{item}}
+                       <span>{{item ==20||item ==30? '年':'周岁'}}</span>
+                    </li>
                     <li @click="canclePeriod()">取消</li>
                   </ul>
               </van-popup>
+            <p class="noSelect" v-show="noPeriod">请选择保险期间</p>
             <van-cell title="交费方式"   @click="showCoverage()" :class="{'check': coverage!=='请选择'}">
                <span>{{coverageName}}</span>
               <i class="iconfont icon-youjiantou" v-show="coverage ==='请选择'"></i>
@@ -89,10 +91,12 @@
                   <ul class="am-content">
                     <li @click="coveragePick(12)">年交</li>
                     <li @click="coveragePick(0)">趸交</li>
-                    <li @click="coveragePick()">取消</li>
+                    <li @click="cancleCoverage">取消</li>
                   </ul>
               </van-popup>
-            <van-cell title="交费期限" value="内容"  @click="showDeadline()" :class="{'check': deadlineVal!=='请选择'}">
+            <p class="noSelect" v-show="noCoverage">请选择交费方式</p>
+            <!-- 点击按钮如果是一次性付清或者请选择 是不让点击的 如果是请选择,点的时候上面的coverage会提示-->
+            <van-cell title="交费期限" value="内容"  @click="unDeadline && showDeadline() || !undesc && description()" :class="{'check': deadlineVal!=='请选择'}">
                <span>{{deadlineVal}}</span> <span v-show="deadlineVal !=='请选择'&&deadlineVal !=='一次性付清'">年</span>
               <i class="iconfont icon-youjiantou" v-show="deadlineVal ==='请选择'"></i>
             </van-cell>
@@ -102,6 +106,7 @@
                      <li @click="deadLinePick(item)">取消</li>
                   </ul>
               </van-popup>
+            <p class="noSelect" v-show="noDeadline">请选择交费方式</p>
           </van-cell-group>
           <!-- <van-area :area-list="areaList" /> -->
       </div>
@@ -115,7 +120,7 @@
             </div>
            </div>
          </div>
-         <div class="premium-right mg-20" to="/healtyInfo" @click = "selectTrue">
+         <div class="premium-right mg-20" to="/healtyInfo" @click = "selectTrue" ref="butt">
            立即购买
          </div>
       </div>
@@ -126,12 +131,14 @@
 
 <script>
 import areaList from './areaList.js'
+// import BScroll from '@better-scroll/core'
 // import Vue from 'vue'
 // import { Area } from 'vant'
 
 // Vue.use(Area)
 export default {
   created () {
+    // console.log(this.$refs)
     this.datePick(18, 60)
   },
   data () {
@@ -143,6 +150,7 @@ export default {
       timeShow: false,
       month: 1,
       day: 19,
+      age: '',
       minDate: '',
       maxDate: '',
       currentDate: new Date(),
@@ -156,7 +164,16 @@ export default {
       coverageShow: false,
       deadlineShow: false,
       deadlineVal: '请选择',
-      noSelect: false
+      noCity: false,
+      noTime: false,
+      noAmount: false,
+      noPeriod: false,
+      noCoverage: false,
+      noDeadline: false,
+      unDeadline: false,
+      // 保险期间的值
+      periodVal: [20, 30, 60, 65, 70, 80],
+      amountVal: [50, 100, 150, 200, 250, 300]
     }
   },
   methods: {
@@ -176,7 +193,7 @@ export default {
       const district = event[2].name
       this.cityValue = `${province} ${city} ${district}`
       // this.$refs.area.lastChild.style.white-space = 'nowrap'
-      this.noSelect = false
+      this.noCity = false
     },
     showTime () {
       this.timeShow = true
@@ -199,7 +216,9 @@ export default {
       console.log(time)
       console.log(new Date(time))
       const age = (new Date(time).getFullYear() - 1970)
+      this.age = age
       this.timeValue = `${year}-${month}-${day}(${age}周岁)`
+      this.noTime = false
     },
     datePick (minYear, maxYear) {
       const myDate = new Date()
@@ -244,6 +263,9 @@ export default {
       this.coverage = val
       this.coverageShow = false
     },
+    cancleCoverage () {
+      this.coverageShow = false
+    },
     showDeadline () {
       this.deadlineShow = true
     },
@@ -253,13 +275,44 @@ export default {
     },
     selectTrue () {
       if (this.cityValue === '请选择') {
-        this.noSelect = true
+        this.noCity = true
       }
-      if (!this.noSelect) {
+      if (this.timeValue === '请选择') {
+        this.noTime = true
+      }
+      if (this.amount === '请选择') {
+        this.noAmount = true
+      }
+      if (this.period === '请选择') {
+        this.noPeriod = true
+      }
+      if (this.coverage === '请选择') {
+        this.noCoverage = true
+      }
+      if (this.deadlineVal === '请选择') {
+        this.noDeadline = true
+      }
+      console.log(this.cityValue, this.timeValue, this.amount, this.period, this.coverage, this.deadlineVal, this.rel)
+      if (!this.noCity && !this.noTime) {
         this.$router.push({
           path: '/healthyInfo'
         })
       }
+    },
+    identical () {
+      if (this.period) {
+        if (this.periodVal.indexOf(this.period) === -1) {
+          this.period = '请选择'
+        }
+        if (this.amount) {
+          if (this.amountVal.indexOf(this.amount) === -1) {
+            this.amount = '请选择'
+          }
+        }
+      }
+    },
+    description () {
+      this.noCoverage = true
     }
   },
   computed: {
@@ -295,18 +348,83 @@ export default {
       } else {
         return ''
       }
+    },
+    undesc () {
+      if (this.coverage !== '请选择') {
+        return true
+      } else {
+        return false
+      }
     }
   },
   watch: {
     coverage (newValue, oldValue) {
       if (newValue === 0) {
         this.deadlineVal = '一次性付清'
+        this.unDeadline = false
       } else {
         this.deadlineVal = '请选择'
+        this.unDeadline = true
+      }
+      if (newValue !== '请选择') {
+        this.noCoverage = false
+      }
+    },
+    amount (newValue) {
+      if (newValue !== '请选择') {
+        this.noAmount = false
+      }
+    },
+    period (newValue) {
+      if (newValue !== '请选择') {
+        this.noPeriod = false
+      }
+    },
+    deadlineVal (newValue) {
+      if (newValue !== '请选择') {
+        this.noDeadline = false
+      }
+    },
+
+    // 监听age的变化
+    age (age) {
+      if (age > 50 && age <= 60) {
+        this.periodVal = [20, 80]
+        this.amountVal = [50, 100, 150, 200]
+        // 如果有原本的值,先判断原本的值是不是在这里面不是的话变成请选择
+        this.identical()
+      } else if (age > 45) {
+        this.periodVal = [20, 30, 70, 80]
+        this.amountVal = [50, 100, 150, 200, 250]
+        this.identical()
+      } else if (age > 40) {
+        this.periodVal = [20, 30, 65, 70, 80]
+        this.amountVal = [50, 100, 150, 200, 250]
+        this.identical()
+      } else if (age >= 18) {
+        this.periodVal = [20, 30, 60, 65, 70, 80]
+        this.amountVal = [50, 100, 150, 200, 250, 300]
+        this.identical()
       }
     }
+    // totalshow (newValue, oldValue) {
+    //   if (newValue === true) {
+    //     this.$nextTick(() => {
+    //       console.log(this.$refs.total)
+    //       if (!this.scroll) {
+    //         console.log(33)
+    //         this.scroll = new BScroll(this.$refs.total, {
+    //           click: true,
+    //           startY: 0
+    //         })
+    //       } else {
+    //         console.log(777)
+    //         this.scroll.refresh()
+    //       }
+    //     })
+    //   }
+    // }
   }
-
 }
 </script>
 
@@ -357,6 +475,7 @@ export default {
         }
       }
     }
+
     .premium-right {
       height: 45px;
       line-height: 45px;
@@ -375,6 +494,7 @@ export default {
      }
     .popup-total {
       padding: 20px;
+      padding-bottom: 0;
       overflow: hidden;
       .noSelect {
         margin: 0 10px;
@@ -399,11 +519,15 @@ export default {
         color: #3f6db3;
       }
       .van-cell {
-        font-size: 14px;
+        font-size: 16px;
         overflow: inherit;
+        padding:14px 16px;
         .van-cell__value {
           overflow: inherit;
           color: #d6d9df;
+             span {
+               font-size: 14px;
+           }
         }
         &.check {
           .van-cell__value {
@@ -464,6 +588,11 @@ export default {
            }
          }
        }
+    }
+     .total {
+      overflow-x: hidden;
+      overflow-y: auto;
+      max-height: 280px;
     }
 
 }
