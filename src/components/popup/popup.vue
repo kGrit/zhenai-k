@@ -103,7 +103,7 @@
             <van-popup v-model="deadlineShow" position="bottom">
                   <ul class="am-content">
                     <li v-for = "(item,index) in deadline" :key="index" @click="deadLinePick(item)">{{item}}年</li>
-                     <li @click="deadLinePick(item)">取消</li>
+                     <li @click="cancleDeadine()">取消</li>
                   </ul>
               </van-popup>
             <p class="noSelect" v-show="noDeadline">请选择交费方式</p>
@@ -116,7 +116,7 @@
              <span class="year">年付保费</span>
              <div class="price">
                <span>￥</span>
-               <span>88888</span>
+               <span>{{money}}</span>
             </div>
            </div>
          </div>
@@ -131,6 +131,7 @@
 
 <script>
 import areaList from './areaList.js'
+import rateTable from './rateTable'
 // import BScroll from '@better-scroll/core'
 // import Vue from 'vue'
 // import { Area } from 'vant'
@@ -200,7 +201,7 @@ export default {
     },
     confirmDate (val) {
       this.timeShow = false
-      console.log(event)
+      // console.log(event)
       const year = val.getFullYear()
       let month = val.getMonth() + 1
       let day = val.getDate()
@@ -212,9 +213,9 @@ export default {
         day = `0${day}`
       }
       const time = Math.round((+new Date() - +val))
-      console.log(+new Date(), +val)
-      console.log(time)
-      console.log(new Date(time))
+      // console.log(+new Date(), +val)
+      // console.log(time)
+      // console.log(new Date(time))
       const age = (new Date(time).getFullYear() - 1970)
       this.age = age
       this.timeValue = `${year}-${month}-${day}(${age}周岁)`
@@ -268,6 +269,9 @@ export default {
     },
     showDeadline () {
       this.deadlineShow = true
+    },
+    cancleDeadine () {
+      this.deadlineShow = false
     },
     deadLinePick (val) {
       this.deadlineVal = val
@@ -340,7 +344,7 @@ export default {
       }
     },
     deadline () {
-      console.log(this.coverage + '周期' + this.period)
+      // console.log(this.coverage + '周期' + this.period)
       if (this.coverage === 12 && this.period === 20) {
         return [5, 10, 20]
       } else if (this.coverage === 12) {
@@ -354,6 +358,19 @@ export default {
         return true
       } else {
         return false
+      }
+    },
+    money () {
+      if (this.rel === '请选择' || this.period === '请选择' || this.deadlineVal === '请选择' || this.rel === '请选择' || this.age === '请选择' || this.amount === '请选择') {
+        return '--'
+      } else if (this.coverage === 0) {
+        console.log('啊哈' + this.rel, this.period, this.deadlineVal, this.age, this.amount)
+        const all1 = Math.round((rateTable[this.rel][this.period][1][this.age] * this.amount).toFixed(2))
+        return all1
+      } else {
+        console.log(this.rel, this.period, this.deadlineVal, this.age, this.amount)
+        const all2 = Math.round((rateTable[this.rel][this.period][this.deadlineVal][this.age] * this.amount).toFixed(2))
+        return all2
       }
     }
   },
@@ -469,8 +486,9 @@ export default {
            display: inline-block;
           color:#3F6DB3;
           font-size: 18px;
-          span:first-child{
-            font-family: 'DIN-Medium',"PingFangSC-Medium", "Source Han Sans", '黑体';
+          font-family: 'DIN-Medium',"PingFangSC-Medium", "Source Han Sans", '黑体';
+          span:last-child{
+          font-weight: 700;
           }
         }
       }
