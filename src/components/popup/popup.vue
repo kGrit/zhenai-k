@@ -50,7 +50,7 @@
                <span class="male" :class="{'chose':rel==='1'}" @click="selectMan()" >男</span>
                <span class="famale" @click ="selectWoman()" :class="{'chose':rel==='2'}">女</span>
             </van-cell>
-            <van-cell title="基本保额" value="请选择" @click="showAmount()" :class="{'check': amount!=='请选择'}">
+            <van-cell title="基本保额" value="请选择" @click="haveAge &&showAmount() || !haveAge&&warnTime()" :class="{'check': amount!=='请选择'}">
               <span>{{amount}}</span> <span v-show="amount !=='请选择'">万</span>
                <i class="iconfont icon-youjiantou" v-show="amount ==='请选择'"></i>
             </van-cell>
@@ -66,7 +66,7 @@
                   </ul>
               </van-popup>
             <p class="noSelect" v-show="noAmount">请选择基本保额</p>
-            <van-cell title="保险期间" value="内容" @click="showPeriod()" :class="{'check': period!=='请选择'}">
+            <van-cell title="保险期间" value="内容" @click=" haveAmount &&showPeriod() || !haveAmount && warnAmount()" :class="{'check': period!=='请选择'}">
               <span v-show="period !=='请选择'">{{periodBefore}}</span>
               <span>{{period}}</span>
               <span v-show="period !=='请选择'">{{periodAfter}}</span>
@@ -83,7 +83,7 @@
                   </ul>
               </van-popup>
             <p class="noSelect" v-show="noPeriod">请选择保险期间</p>
-            <van-cell title="交费方式"   @click="showCoverage()" :class="{'check': coverage!=='请选择'}">
+            <van-cell title="交费方式"   @click=" havePeriod && showCoverage() || !havePeriod && wranPeriod()" :class="{'check': coverage!=='请选择'}">
                <span>{{coverageName}}</span>
               <i class="iconfont icon-youjiantou" v-show="coverage ==='请选择'"></i>
             </van-cell>
@@ -172,6 +172,9 @@ export default {
       noCoverage: false,
       noDeadline: false,
       unDeadline: false,
+      haveAge: false,
+      haveAmount: false,
+      havePeriod: false,
       // 保险期间的值
       periodVal: [20, 30, 60, 65, 70, 80],
       amountVal: [50, 100, 150, 200, 250, 300]
@@ -201,6 +204,7 @@ export default {
     },
     confirmDate (val) {
       this.timeShow = false
+      this.haveAge = true
       // console.log(event)
       const year = val.getFullYear()
       let month = val.getMonth() + 1
@@ -246,6 +250,7 @@ export default {
       this.amount = val
       console.log(this.amount)
       this.amountShow = false
+      this.haveAmount = true
     },
     showPeriod () {
       this.periodShow = true
@@ -256,6 +261,7 @@ export default {
     periodPick (val) {
       this.period = val
       this.periodShow = false
+      this.havePeriod = true
     },
     showCoverage () {
       this.coverageShow = true
@@ -317,6 +323,15 @@ export default {
     },
     description () {
       this.noCoverage = true
+    },
+    warnTime () {
+      this.noTime = true
+    },
+    warnAmount () {
+      this.noAmount = true
+    },
+    wranPeriod () {
+      this.noPeriod = true
     }
   },
   computed: {
