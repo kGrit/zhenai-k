@@ -36,7 +36,7 @@
             <p class="noSelect" v-show="noCity">请选择投保地区</p>
 
             <van-cell title="被保险人生日" value="请选择" @click="showTime" :class="{'check': timeValue!=='请选择'}">
-              <span>{{timeValue}}</span>
+              <span> {{timeValue}}</span>
                <i class="iconfont icon-youjiantou" v-show="timeValue ==='请选择'"></i>
             </van-cell>
             <van-popup v-model="timeShow" position="bottom">
@@ -116,7 +116,7 @@
              <span class="year">年付保费</span>
              <div class="price">
                <span>￥</span>
-               <span>{{money}}</span>
+               <span v-if="this.money">{{money}}</span>
             </div>
            </div>
          </div>
@@ -248,7 +248,6 @@ export default {
     },
     amountPick (val) {
       this.amount = val
-      console.log(this.amount)
       this.amountShow = false
       this.haveAmount = true
     },
@@ -359,13 +358,27 @@ export default {
       }
     },
     deadline () {
-      // console.log(this.coverage + '周期' + this.period)
-      if (this.coverage === 12 && this.period === 20) {
-        return [5, 10, 20]
-      } else if (this.coverage === 12) {
-        return [5, 10, 20, 30]
+      if (this.period && this.age) {
+        if (this.period === 60 || this.period === 65 || this.period === 70 || this.period === 80) {
+          const diff = Math.abs(this.period - this.age)
+          if (diff >= 30) {
+            return [5, 10, 20, 30]
+          } else if (diff >= 20 && diff < 30) {
+            return [5, 10, 20]
+          } else if (diff >= 10 && diff < 20) {
+            return [5, 10]
+          } else if (diff < 10) {
+            return [5]
+          } else {
+            return [5, 10, 20, 30]
+          }
+        } else if (this.coverage === 12 && this.period === 20) {
+          return [5, 10, 20]
+        } else {
+          return [5, 10, 20, 30]
+        }
       } else {
-        return ''
+        return [5, 10, 20, 30]
       }
     },
     undesc () {
@@ -379,11 +392,9 @@ export default {
       if (this.rel === '请选择' || this.period === '请选择' || this.deadlineVal === '请选择' || this.rel === '请选择' || this.age === '请选择' || this.amount === '请选择') {
         return '--'
       } else if (this.coverage === 0) {
-        console.log('啊哈' + this.rel, this.period, this.deadlineVal, this.age, this.amount)
         const all1 = Math.round((rateTable[this.rel][this.period][1][this.age] * this.amount).toFixed(2))
         return all1
       } else {
-        console.log(this.rel, this.period, this.deadlineVal, this.age, this.amount)
         const all2 = Math.round((rateTable[this.rel][this.period][this.deadlineVal][this.age] * this.amount).toFixed(2))
         return all2
       }
@@ -401,23 +412,34 @@ export default {
       if (newValue !== '请选择') {
         this.noCoverage = false
       }
+      sessionStorage.coverage = newValue
     },
     amount (newValue) {
       if (newValue !== '请选择') {
         this.noAmount = false
       }
+      sessionStorage.amount = newValue
     },
     period (newValue) {
       if (newValue !== '请选择') {
         this.noPeriod = false
       }
+      sessionStorage.period = newValue
     },
     deadlineVal (newValue) {
       if (newValue !== '请选择') {
         this.noDeadline = false
       }
+      sessionStorage.deadlineVal = newValue
     },
-
+    deadline (newValue) {
+      if (this.deadlineVal !== '请选择' && this.deadlineVal !== '一次性付清') {
+        // 看这个值是否在deadline中，如果在中间就不做操作，如果不在就将其变为请选择
+        if (newValue.indexOf(this.deadlineVal) === -1) {
+          this.deadlineVal = '请选择'
+        }
+      }
+    },
     // 监听age的变化
     age (age) {
       if (age > 50 && age <= 60) {
@@ -438,6 +460,16 @@ export default {
         this.amountVal = [50, 100, 150, 200, 250, 300]
         this.identical()
       }
+      sessionStorage.age = age
+    },
+    cityValue (val) {
+      sessionStorage.cityValue = val
+    },
+    timeValue (val) {
+      sessionStorage.timeValue = val
+    },
+    rel (val) {
+      sessionStorage.sex = val
     }
     // totalshow (newValue, oldValue) {
     //   if (newValue === true) {
