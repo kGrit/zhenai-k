@@ -141,30 +141,104 @@ export default {
   created () {
     // console.log(this.$refs)
     this.datePick(18, 60)
+    // 初始化的时候当页面中有session中穿过来的数据的时候，将下面的提示框关闭
+    this.sessionTime()
+    this.sessionAmount()
+    this.sessionPeriod()
+    if (+sessionStorage.coverage === 12) {
+      this.unDeadline = true
+    }
+    if (sessionStorage.age) {
+      if (+sessionStorage.age > 50 && +sessionStorage.age <= 60) {
+        this.periodVal = [20, 80]
+        this.amountVal = [50, 100, 150, 200]
+        // 如果有原本的值,先判断原本的值是不是在这里面不是的话变成请选择
+        this.identical()
+      } else if (+sessionStorage.age > 45) {
+        this.periodVal = [20, 30, 70, 80]
+        this.amountVal = [50, 100, 150, 200, 250]
+        this.identical()
+      } else if (+sessionStorage.age > 40) {
+        this.periodVal = [20, 30, 65, 70, 80]
+        this.amountVal = [50, 100, 150, 200, 250]
+        this.identical()
+      } else if (+sessionStorage.age >= 18) {
+        this.periodVal = [20, 30, 60, 65, 70, 80]
+        this.amountVal = [50, 100, 150, 200, 250, 300]
+        this.identical()
+      }
+    }
+    // if (this.period && this.age) {
+    //   console.log(sessionStorage.period, sessionStorage.age)
+    //   if (this.period === 60 || this.period === 65 || this.period === 70 || this.period === 80) {
+    //     const diff = Math.abs(this.period - this.age)
+    //     if (diff >= 30) {
+    //       this.deadline = [5, 10, 20, 30]
+    //     } else if (diff >= 20 && diff < 30) {
+    //       this.deadline = [5, 10, 20]
+    //     } else if (diff >= 10 && diff < 20) {
+    //       this.deadline = [5, 10]
+    //     } else if (diff < 10) {
+    //       this.deadline = [5]
+    //     } else {
+    //       this.deadline = [5, 10, 20, 30]
+    //     }
+    //   } else if (this.coverage === 12 && this.period === 20) {
+    //     this.deadline = [5, 10, 20]
+    //   } else {
+    //     this.deadline = [5, 10, 20, 30]
+    //   }
+    // } else {
+    //   this.deadline = [5, 10, 20, 30]
+    // }
+    // if (sessionStorage.period && sessionStorage.age) {
+    //   if (sessionStorage.period === 60 || sessionStorage.period === 65 || sessionStorage.period === 70 || sessionStorage.period === 80) {
+    //     const diff = Math.abs(sessionStorage.period - sessionStorage.age)
+    //     if (diff >= 30) {
+    //       return [5, 10, 20, 30]
+    //     } else if (diff >= 20 && diff < 30) {
+    //       return [5, 10, 20]
+    //     } else if (diff >= 10 && diff < 20) {
+    //       return [5, 10]
+    //     } else if (diff < 10) {
+    //       return [5]
+    //     } else {
+    //       return [5, 10, 20, 30]
+    //     }
+    //   } else if (sessionStorage.coverage === 12 && sessionStorage.period === 20) {
+    //     return [5, 10, 20]
+    //   } else {
+    //     return [5, 10, 20, 30]
+    //   }
+    // } else {
+    //   return [5, 10, 20, 30]
+    // }
   },
   data () {
     return {
       totalshow: false,
       areaShow: false,
       areaList,
-      cityValue: '请选择',
+      cityValue: sessionStorage.cityValue || '请选择',
       timeShow: false,
       month: 1,
       day: 19,
-      age: '',
+      age: +sessionStorage.age || '',
       minDate: '',
       maxDate: '',
       currentDate: new Date(),
-      timeValue: '请选择',
-      rel: '2',
+      timeValue: sessionStorage.timeValue || '请选择',
+      rel: sessionStorage.sex || '2',
       amountShow: false,
-      amount: '请选择',
-      period: '请选择',
+      amount: +sessionStorage.amount || '请选择',
+      period: +sessionStorage.period || '请选择',
       periodShow: false,
-      coverage: '请选择',
+      // sessionStroage中会遇到0，导致||运算选择后面的，所以改为三元运算符
+      // coverage: +sessionStorage.coverage || '请选择',
+      coverage: sessionStorage.coverage ? +sessionStorage.coverage : '请选择',
       coverageShow: false,
       deadlineShow: false,
-      deadlineVal: '请选择',
+      deadlineVal: sessionStorage.deadlineVal || '请选择',
       noCity: false,
       noTime: false,
       noAmount: false,
@@ -331,6 +405,21 @@ export default {
     },
     wranPeriod () {
       this.noPeriod = true
+    },
+    sessionTime () {
+      if (this.timeValue !== '请选择') {
+        this.haveAge = true
+      }
+    },
+    sessionAmount () {
+      if (this.amount !== '请选择') {
+        this.haveAmount = true
+      }
+    },
+    sessionPeriod () {
+      if (this.period !== '请选择') {
+        this.havePeriod = true
+      }
     }
   },
   computed: {
@@ -358,7 +447,9 @@ export default {
       }
     },
     deadline () {
+      console.log('进到了deadline中')
       if (this.period && this.age) {
+        console.log(sessionStorage.period, sessionStorage.age)
         if (this.period === 60 || this.period === 65 || this.period === 70 || this.period === 80) {
           const diff = Math.abs(this.period - this.age)
           if (diff >= 30) {
@@ -391,14 +482,19 @@ export default {
     money () {
       if (this.rel === '请选择' || this.period === '请选择' || this.deadlineVal === '请选择' || this.rel === '请选择' || this.age === '请选择' || this.amount === '请选择') {
         return '--'
-      } else if (this.coverage === 0) {
-        const all1 = Math.round((rateTable[this.rel][this.period][1][this.age] * this.amount).toFixed(2))
+      } else if (+sessionStorage.coverage === 0) {
+        // console.log(this.rel, this.period, 1, this.age, this.amount)
+        // const all1 = Math.round((rateTable[this.rel][this.period][1][this.age] * this.amount).toFixed(2))
+        const all1 = Math.round((rateTable[sessionStorage.sex][sessionStorage.period][1][sessionStorage.age] * sessionStorage.amount).toFixed(2))
         return all1
       } else {
-        const all2 = Math.round((rateTable[this.rel][this.period][this.deadlineVal][this.age] * this.amount).toFixed(2))
+        // console.log(this.rel, this.period, this.deadlineVal, this.age, this.amount)
+        // const all2 = Math.round((rateTable[this.rel][this.period][this.deadlineVal][this.age] * this.amount).toFixed(2))
+        const all2 = Math.round((rateTable[sessionStorage.sex][sessionStorage.period][sessionStorage.deadlineVal][sessionStorage.age] * sessionStorage.amount).toFixed(2))
         return all2
       }
     }
+
   },
   watch: {
     coverage (newValue, oldValue) {
@@ -409,6 +505,7 @@ export default {
         this.deadlineVal = '请选择'
         this.unDeadline = true
       }
+
       if (newValue !== '请选择') {
         this.noCoverage = false
       }
@@ -419,18 +516,25 @@ export default {
         this.noAmount = false
       }
       sessionStorage.amount = newValue
+      this.haveAmount = true
     },
     period (newValue) {
       if (newValue !== '请选择') {
         this.noPeriod = false
       }
       sessionStorage.period = newValue
+      this.havePeriod = true
     },
     deadlineVal (newValue) {
       if (newValue !== '请选择') {
         this.noDeadline = false
       }
-      sessionStorage.deadlineVal = newValue
+      if (newValue === '一次性付清' || newValue === '请选择') {
+        sessionStorage.deadlineVal = newValue
+      } else {
+        sessionStorage.deadlineVal = +newValue
+      }
+      // sessionStorage.deadlineVal = newValue
     },
     deadline (newValue) {
       if (this.deadlineVal !== '请选择' && this.deadlineVal !== '一次性付清') {
@@ -467,6 +571,7 @@ export default {
     },
     timeValue (val) {
       sessionStorage.timeValue = val
+      this.haveAge = true
     },
     rel (val) {
       sessionStorage.sex = val
